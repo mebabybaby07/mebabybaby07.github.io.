@@ -1,0 +1,71 @@
+<?php //使用者連結另一伴?>
+<!DOCTYPE html>
+
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>"建立另一伴連結"</title>
+<script type="text/javascript">  //彈跳視窗(手機號密碼，未填)
+  function chk(){
+    if(document.anoconnect.phone.value==''){
+      alert('手機號碼未填');
+      document.anoconnect.phone.focus();
+      return false;
+    }
+    return true;
+  }
+</script>
+<style>
+body{
+	   background-image:url(13.jpg);	  
+	   background-repeat:no-repeat;
+	   background-position:center top;
+	   background-size:cover;
+   }
+</style>
+</head>
+
+<body bgcolor="#e6e6fa" text="#0000cd" >
+<?php
+  session_start(); 
+  $userphone=$_SESSION["userphone"];
+  $link =@mysqli_connect('localhost','root','1234','meeting');
+  mysqli_query($link,'SET NAMES utf8');
+  
+  $sql="SELECT * FROM user WHERE phone=$userphone";
+  $result = mysqli_query($link,$sql);  
+  $row = mysqli_fetch_assoc($result);
+  if($row["pair"]==null){   //目前沒有配對
+	  ?></br><font face="DFKai-sb" size="5">您目前沒有配對的對象喔~~~</br>請填入另一伴的電話號碼</font>
+
+    <form name="anoconnect" method="get" action="connect.php" onsubmit="return chk();">
+	</br>
+	<font face="DFKai-sb" size="4">另一伴的電話號碼:</font>
+		<input type="text" name="phone" size="12"><br/>
+    <br/>
+	<input type="submit" name="add" value="新增" style="width:80px;height:25px; border:2px #4169e1 double; background-color:#b0c4de;">
+	</form>
+<?php 
+  }else{   //目前已有配對，顯示另一伴，可選擇刪除或修改
+	  $anophone=$row["anophone"];
+	  $link =@mysqli_connect('localhost','root','1234','meeting');
+      mysqli_query($link,'SET NAMES utf8');
+	  $sql1="SELECT * FROM user WHERE phone=$anophone";
+      $result1 = mysqli_query($link,$sql1); 
+      $row1 = mysqli_fetch_assoc($result1);
+	  $sql2="SELECT * FROM user WHERE phone=$userphone";
+      $result2 = mysqli_query($link,$sql2); 
+      $row2 = mysqli_fetch_assoc($result2);
+	  echo "<font face='DFKai-sb' color='#1e90ff' size='4'>".
+             $row2["name"]."，您目前的另一伴為: ".$row1["name"]; ?></br><?php 
+	  echo "其手機號碼為: ".$row1["phone"];
+	  ?>
+	  </br>
+	  <form name="anoconnect" method="get" action="connect.php">
+	  <input type="submit" name="delete" value="我要刪除" style="width:80px;height:25px; border:2px #ff0000 double; background-color:#ff7f50;" OnClick="return confirm('確定要解除與他的聯結嗎?');">
+	  <input type="submit" name="reset" value="我要修改" style="width:80px;height:25px; border:2px #4169e1 double; background-color:#b0c4de;"> 
+	  </form>
+	  <?php
+  }
+?>		
+</body>

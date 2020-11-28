@@ -1,0 +1,64 @@
+<?php //使用者登入判斷?>
+<!DOCTYPE html>
+
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>"使用者登入"</title>
+<style>
+body{
+	   background-image:url(10.jpg);
+	   background-color: rgba(255,255,255,0.2);
+	   background-repeat:no-repeat;
+	   background-position:center top;
+	   background-size:cover;
+   }
+</style>
+</head>
+<body>
+<?php   
+    $phone=$_GET["phone"]; 
+    $password=$_GET["password"];
+    session_start();
+   
+    if($phone !=""  && $password !=""){
+	   $link =@mysqli_connect('localhost','root','1234','meeting');
+	   mysqli_query($link,'SET NAMES utf8');
+	   
+	   //號碼是否存在
+	   $sql = "SELECT * FROM user WHERE phone='$phone'";
+	   $result = mysqli_query($link,$sql);
+	   $num=mysqli_num_rows($result);
+	   if($num>0){
+		    while($row = mysqli_fetch_assoc($result)){			
+                  if($row["password"]==$password){         
+	                    $_SESSION["username"]=$row["name"];
+			            $_SESSION["userphone"]=$row["phone"];
+			            $_SESSION["usergender"]=$row["gender"];
+	                    header("Location:functionselect.php");
+					    //順利登入，進入功能選擇
+                  }else{
+                        ?> 
+					    <center></br></br></br>
+ 			            <font face='DFKai-sb' color='red' size='5'>手機號碼或是密碼錯誤</font><br/>	            
+				        <input type="submit" name="relogin" value="重新登入" style="width:80px;height:25px; border:2px #ff0000 double; background-color:#ff7f50;" onclick="location.href= ('http://localhost:8080/meeting/userlogin.php')"/>
+                        </br></br></br></br></br>
+				        <img src="777.png" align="bottom" width="300" height="300"/>	
+						</center>
+						<?php
+	                    $_SESSION["login_session"]=false;
+						//密碼錯誤，登入失敗
+	              }
+            }  
+	   }else{
+		    echo"<center></br></br></br><font face='DFKai-sb' color='red' size='5'>"; 
+		    echo "查無此手機號"."</font>"; 
+		    ?></br>
+			<input type="submit" name="relogin" value="重新登入" style="width:80px;height:25px; border:2px #ff0000 double; background-color:#ff7f50;" onclick="location.href= ('http://localhost:8080/meeting/userlogin.php')"/> 
+	        </br></br></br></br></br>
+	        <img src="777.png" align="bottom" width="300" height="300"/>	</center> <?php
+	   }    
+   }
+?>
+</body>
+</html>

@@ -1,0 +1,55 @@
+ <?php //使用者註冊表單?>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>使用者註冊</title>
+<script type="text/javascript">  //彈跳視窗(基本資料，未填)
+  function chk(){
+    if(document.register.username.value==''){
+      alert('暱稱未填');
+      document.register.username.focus();
+      return false;
+    }
+    if(document.register.phone.value==''){
+      alert('電話號碼未填');
+      document.register.phone.focus();
+      return false;
+    }
+	if(document.register.password.value==''){
+      alert('設定密碼未填');
+      document.register.password.focus();
+      return false;
+    }
+	if(document.register.gender.value==''){
+      alert('性別未填');
+      document.register.gender.focus();
+      return false;
+    }
+	if(document.register.anophone.value==''){
+      alert('另一半電話未填');
+      document.register.anophone.focus();
+      return false;
+    }
+    return true;
+  }
+</script>
+<style>
+</style>
+</head>
+<body  text="#fa8072" >  
+   <h1>使用者註冊</h1> 
+   <form name="register" method="get" action="registered.php" onsubmit="return chk();">                           
+      <font face="DFKai-sb" color="#ff69b4" size="4">
+	      暱稱:<input type="text" name="username" size="12"><br/><br/>					  
+          電話號碼:<input type="text" name="phone" size="10"><br/><br/>		
+	      設定密碼:<input type="text" name="password" size="10"><br/> <br/>		
+          性別:<input type="radio" name="gender" value="0">男
+		       <input type="radio" name="gender" value="1">女<br/><br/>	
+          另一伴電話號碼:<input type="text" name="anophone" size="10"><br/><br/>	
+	  </font>	
+      <input type="submit" name="registered" value="註冊" style="width:80px;height:25px; border:2px #dda0dd double; background-color:#ffe4e1;" >
+   </form>	     
+   <img src="6.jpg" align="right" width="400" height="250"/><?php//背景圖片?> 					  
+</body>
+</html>

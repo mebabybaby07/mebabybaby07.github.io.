@@ -1,0 +1,49 @@
+<?php //使用者登入表單?>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>"使用者登入"</title>
+<script type="text/javascript">  //彈跳視窗(手機號密碼，未填)
+  function chk(){
+    if(document.login.phone.value==''){
+      alert('手機號碼未填');
+      document.login.phone.focus();
+      return false;
+    }
+    if(document.login.password.value==''){
+      alert('密碼未填');
+      document.login.password.focus();
+      return false;
+    }
+    return true;
+  }
+</script>
+<style>
+   body{
+	   background-image:url(10.jpg);
+	   background-color: rgba(255,255,255,0.2);
+	   background-repeat:no-repeat;
+	   background-position:center top;
+	   background-size:cover;
+   }
+</style>
+</head>
+<body bgcolor="#e6e6fa" text="#da70d6">
+<h1>使用者登入</h1>
+<?php 
+      if(isset($_GET["hasregistered"])){
+		   echo "<center><font color='red'>";	
+           echo "此電話已註冊過，請重新登入";
+	       echo "</font>";
+	  }
+ ?>
+    <form name="login" method="get" action="login.php" onsubmit="return chk();">
+	   <font face="DFKai-sb" color="#ba55d3" size="4">
+	         電話號碼:<input type="text" name="phone" size="12"><br/><br/>
+	         密碼:<input type="password" name="password" size="12"><br/><br/>
+	   </font>
+	<input type="submit" name="login" value="登入" style="width:80px;height:25px; border:2px #dda0dd double; background-color:#ffe4e1;">
+	</form>		
+</body>
+</html>

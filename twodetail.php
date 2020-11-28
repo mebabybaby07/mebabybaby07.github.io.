@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>分析結果</title>
+<style>
+   body{
+	   background-image:url(20.jpg);	  
+	   background-repeat:no-repeat;
+	   background-position:center top;
+	   background-size:cover;
+	   background-opacity:1;
+   }
+</style>
+<script>
+	var isShow = false;
+	function Ashow(){
+	    if(!isShow) {
+		    isShow = true;
+		    document.getElementById('A1').style.display='';
+	    }else {
+		    isShow = false;
+		    document.getElementById('A1').style.display='none';
+	    }
+    }
+	function Rshow(){
+	    if(!isShow) {
+		    isShow = true;
+		    document.getElementById('R1').style.display='';
+	    }else {
+		    isShow = false;
+		    document.getElementById('R1').style.display='none';
+	    }
+    }
+	function Mshow(){
+	    if(!isShow) {
+		    isShow = true;
+		    document.getElementById('M1').style.display='';
+	    }else {
+		    isShow = false;
+		    document.getElementById('M1').style.display='none';
+	    }
+    }
+	function Oshow(){
+	    if(!isShow) {
+		    isShow = true;
+		    document.getElementById('O1').style.display='';
+	    }else {
+		    isShow = false;
+		    document.getElementById('O1').style.display='none';
+	    }
+    }
+	function Ishow(){
+	    if(!isShow) {
+		    isShow = true;
+		    document.getElementById('I1').style.display='';
+	    }else {
+		    isShow = false;
+		    document.getElementById('I1').style.display='none';
+	    }
+    }
+	function Qshow(){
+	    if(!isShow) {
+		    isShow = true;
+		    document.getElementById('Q1').style.display='';
+	    }else {
+		    isShow = false;
+		    document.getElementById('Q1').style.display='none';
+	    }
+    }
+	var stateshow = false;
+	function state(){
+		if(!stateshow){
+			stateShow = true;
+		    document.getElementById('state').style.display='';
+		}else {
+		    stateShow = false;
+		    document.getElementById('state').style.display='none';
+	    }
+	}
+</script>
+</head>
+<body  text="#4169e1">
+<?php
+    $link =@mysqli_connect('localhost','root','1234','meeting');
+    mysqli_query($link,'SET NAMES utf8');
+    session_start();
+	$pair=$_SESSION["pair"];
+	$userphone=$_SESSION["userphone"];
+	$anophone=$_SESSION["anophone"];
+	
+    if(isset($_GET["twodetail"])){
+		
+		$itemdetail=$_GET["twodetail"];
+		$sql="SELECT * FROM itemnum WHERE itemname='$itemdetail'";
+		$result = mysqli_query($link,$sql);
+        $row=mysqli_fetch_assoc($result);
+		$itemcode=$row["itemcode"];
+		
+		//查詢使用者答案
+		$sql1="SELECT * FROM twoanswer WHERE phone='$userphone'";
+		$result1 = mysqli_query($link,$sql1);
+		$row1=mysqli_fetch_assoc($result1);
+		$userr=array(); //使用者正面選項  陣列
+		$userb=array(); //使用者反面選項  陣列
+		//查詢另一伴答案
+		$sql2="SELECT * FROM twoanswer WHERE phone='$anophone'";
+		$result2 = mysqli_query($link,$sql2);
+		$row2=mysqli_fetch_assoc($result2);
+		$anor=array();  //另一伴正面選項  陣列
+		$anob=array();  //另一伴反面選項  陣列
+		//查詢另一伴資料
+		$sql4="SELECT * FROM user WHERE phone='$anophone'";
+		$result4 = mysqli_query($link,$sql4);
+		$row4=mysqli_fetch_assoc($result4);
+		
+		$k=0;$h=0;$q=0; $r=0;$a=0; $o=0; $m=0; $i=0; $q1=0; $r1=0;$a1=0; $o1=0; $m1=0; $i1=0;?>
+        <center></br></br>
+		<font size=4 color=#FF6E6E>現在來看看，與另一伴的不同的地方在哪裡八~</font></br>	
+        <font size=3 color=#FF8C8C>您可以藉由點擊需求類型，來查看此類需求是甚麼意思~</font>
+		<div id="state" style="display:none;  font-size:12px; text-align:center; height:20px;  width:360px;"><font size=2 color=#FFA1A1>(再點擊一次，說明即會就會消失喔~~~)</font> </div>
+        <hr size="3" width="500" color="#FFBFBF" noshade /> 		
+        <table border=1 cellspacing=5 cellpadding=2><tr><td><?php		
+		while($meta=mysqli_fetch_field($result1)){		
+			$fir=mb_substr($meta->name, 0, 1);
+			$qid=$meta->name;
+			if($fir==$itemcode){			
+				$k++;
+				
+				if($k==1){
+				    echo $itemdetail."的兩人綜合排序是  <font color=#FF0000>第".$row1["$meta->name"]."</font></td><td>您的</td><td>".$row4["name"]."</td><td>狀態</td></tr>";
+			    }else{
+					//echo $qid;
+					if($k%2==0){ 
+                        $sql3="SELECT question FROM questionset WHERE qid='$qid'";
+				        $result3 = mysqli_query($link,$sql3);
+				        $row3=mysqli_fetch_assoc($result3);
+						
+				        echo "<tr><td>".$row3["question"]."</td>";					
+				        //正面選項存入陣列
+			            array_push($userr,$row1["$meta->name"]);
+						array_push($anor,$row2["$meta->name"]);
+                    }else{
+						//反面選項存入陣列
+			            array_push($userb,$row1["$meta->name"]);
+						array_push($anob,$row2["$meta->name"]);
+						//使用者的需求類型
+						if(($userr[$h]==1 &&$userb[$h]==1 )|| ($userr[$h]==5 &&$userb[$h]==5)){
+			                ?>
+                            <td><input type="button" id="Q" value="Q型需求" style="width:80px;height:25px; border:2px #C9C9C9 double; background-color:#CFCFCF;" href="javascript:;" onclick="Qshow(),state();"/>		
+							</td><?php					 
+				            $q++;
+			            }else if( ($userr[$h]==2 && $userb[$h]==1) || ($userr[$h]==3 && $userb[$h]==1) || ($userr[$h]==4 && $userb[$h]==1) || ($userr[$h]==5 && $userb[$h]==1)){
+				            ?>
+							<td><input type="button" id="R" value="R型需求" style="width:80px;height:25px; border:2px #96FF96 double; background-color:#A1FFA1;" href="javascript:;" onclick="Rshow(),state();"/>		
+							</td><?php  
+					        $r++;
+				        }else if( ($userr[$h]==5 && $userb[$h]==2) || ($userr[$h]==5 && $userb[$h]==3) || ($userr[$h]==5 && $userb[$h]==4)){
+				            ?>
+							<td><input type="button" id="R" value="R型需求" style="width:80px;height:25px; border:2px #96FF96 double; background-color:#A1FFA1;" href="javascript:;" onclick="Rshow(),state();"/>		
+							</td><?php  
+					        $r++;
+			            }else if( ($userr[$h]==1 && $userb[$h]==2) || ($userr[$h]==1 && $userb[$h]==3) || ($userr[$h]==1 && $userb[$h]==4)){
+				            ?>
+							<td><input type="button" id="A" value="A型需求" style="width:80px;height:25px; border:2px #D396FF double; background-color:#D7A1FF;" href="javascript:;" onclick="Ashow(),state();"/>
+							</td><?php  
+				            $a++;
+			            }else if( $userr[$h]==1 && $userb[$h]==5 ) {
+				            ?>
+							<td><input type="button" id="O" value="O型需求" style="width:80px;height:25px; border:2px #FFFF96 double; background-color:#FFFFA1;" href="javascript:;" onclick="Oshow(),state();"/>				
+							</td><?php  
+					        $o++;
+			            }else if( ($userr[$h]==2 && $userb[$h]==5) || ($userr[$h]==3 && $userb[$h]==5) || ($userr[$h]==4 && $userb[$h]==5)){
+				            ?>
+							<td><input type="button" id="M" value="M型需求" style="width:80px;height:25px; border:2px #FF9696 double; background-color:#FFA1A1;" href="javascript:;" onclick="Mshow(),state();"/>
+		                    </td><?php
+			            }else {
+				            ?>
+							<td><input type="button" id="I" value="I型需求" style="width:80px;height:25px; border:2px #8C8CFF double; background-color:#9999FF;" href="javascript:;" onclick="Ishow(),state();"/>
+ 				            </td><?php  
+				            $i++;
+			            }
+						//另一伴的需求類型
+						if(($anor[$h]==1 &&$anob[$h]==1 )|| ($anor[$h]==5 &&$anob[$h]==5)){
+			                ?>
+                            <td><input type="button" id="Q" value="Q型需求" style="width:80px;height:25px; border:2px #C9C9C9 double; background-color:#CFCFCF;" href="javascript:;" onclick="Qshow(),state();"/>		
+							</td><?php							
+				            $q1++;
+			            }else if( ($anor[$h]==2 && $anob[$h]==1) || ($anor[$h]==3 && $anob[$h]==1) || ($anor[$h]==4 && $anob[$h]==1) || ($anor[$h]==5 && $anob[$h]==1)){
+				            ?>
+							<td><input type="button" id="R" value="R型需求" style="width:80px;height:25px; border:2px #96FF96 double; background-color:#A1FFA1;" href="javascript:;" onclick="Rshow(),state();"/>		
+							</td><?php
+					        $r1++;
+				        }else if( ($anor[$h]==5 && $anob[$h]==2) || ($anor[$h]==5 && $anob[$h]==3) || ($anor[$h]==5 && $anob[$h]==4)){
+				            ?>
+							<td><input type="button" id="R" value="R型需求" style="width:80px;height:25px; border:2px #96FF96 double; background-color:#A1FFA1;" href="javascript:;" onclick="Rshow(),state();"/>
+							</td><?php
+					        $r1++;
+			            }else if( ($anor[$h]==1 && $anob[$h]==2) || ($anor[$h]==1 && $anob[$h]==3) || ($anor[$h]==1 && $anob[$h]==4)){
+				            ?>
+							<td><input type="button" id="A" value="A型需求" style="width:80px;height:25px; border:2px #D396FF double; background-color:#D7A1FF;" href="javascript:;" onclick="Ashow(),state();"/>
+							</td><?php
+				            $a1++;
+			            }else if( $anor[$h]==1 && $anob[$h]==5 ) {
+				            ?>
+							<td><input type="button" id="O" value="O型需求" style="width:80px;height:25px; border:2px #FFFF96 double; background-color:#FFFFA1;" href="javascript:;" onclick="Oshow(),state();"/>				
+							</td><?php
+					        $o1++;
+			            }else if( ($anor[$h]==2 && $anob[$h]==5) || ($anor[$h]==3 && $anob[$h]==5) || ($anor[$h]==4 && $anob[$h]==5)){
+				           	?>
+							<td><input type="button" id="M" value="M型需求" style="width:80px;height:25px; border:2px #FF9696 double; background-color:#FFA1A1;" href="javascript:;" onclick="Mshow(),state();"/>
+		                    </td><?php
+					        $m1++;
+			            }else {
+				            ?>
+							<td><input type="button" id="I" value="I型需求" style="width:80px;height:25px; border:2px #8C8CFF double; background-color:#9999FF;" href="javascript:;" onclick="Ishow(),state();"/>
+ 				            </td><?php
+						    $i1++;
+			            }
+						if( ($q==$q1&&$q>0&&$q1>0) || ($r==$r1&&$r>0&&$r1>0) || ($a==$a1&&$a>0&&$a1>0) || ($o==$o1&&$o>0&&$o1>0) || ($m==$m1&&$m>0&&$m1>0) || ($i==$i1&&$i>0&&$i1>0) ){
+							echo "<td></td></tr>";
+						}else{
+							echo "<td><font color=#ff0000>有落差</font></td></tr>";
+						}
+						$h++;$q=0; $r=0;$a=0; $o=0; $m=0; $i=0; $q1=0; $r1=0;$a1=0; $o1=0; $m1=0; $i1=0;
+					}					
+				}			
+			}
+		}
+		?></table></br> 
+		<input type="submit" name="backitem" value="返回" style="width:80px;height:25px; border:2px #FFB5B5 double; background-color:#FFC9C9;" onclick="location.href= ('http://localhost:8080/meeting/twodetail.php')"/>		
+		</br></br>
+		<font color="#000000">	
+		<div id="M1" style="display:none;  width:400px; font-size:13px; ">
+             <div id="chiness"  style="background-color:#FFA1A1; text-align:center; height:50px; line-height:50px; width:80px;   float:left;">基本型需求</div>
+			 <div id="describe" style="background-color:#FF7878; text-align:center; height:50px; line-height:25px; width:200px;  float:right;">有此服務是理所當然</br>沒有它不滿意度會急速提升</div>
+             <div id="english"  style="background-color:#FF8C8C; text-align:center; height:50px; line-height:50px; margin-left:80px;margin-right:100px;">M型</div>
+		</div>
+		<div id="O1" style="display:none;  width:400px; font-size:13px; ">
+             <div id="chiness"  style="background-color:#FFFFA1; text-align:center; height:50px; line-height:50px; width:80px;   float:left;">期望型需求</div>
+			 <div id="describe" style="background-color:#FFFF78; text-align:center; height:50px; line-height:25px; width:200px;  float:right;">有此服務會提升滿意</br>沒有它不滿意度也會提升</div>
+             <div id="english"  style="background-color:#FFFF8C; text-align:center; height:50px; line-height:50px; margin-left:80px;margin-right:100px;">O型</div>
+		</div>
+		<div id="A1" style="display:none;  width:400px; font-size:13px; ">
+             <div id="chiness"  style="background-color:#D7A1FF; text-align:center; height:50px; line-height:50px; width:80px;   float:left;">魅力型需求</div>
+			 <div id="describe" style="background-color:#C678FF; text-align:center; height:50px; line-height:25px; width:200px;  float:right;">沒有此特性無所謂</br>若具備的話滿意度會急速上升</div>
+             <div id="english"  style="background-color:#CE8CFF; text-align:center; height:50px; line-height:50px; margin-left:80px;margin-right:100px;">A型</div>
+		</div>
+		<div id="R1" style="display:none;  width:400px; font-size:13px; ">
+             <div id="chiness"  style="background-color:#A1FFA1; text-align:center; height:50px; line-height:50px; width:80px;   float:left;">不須型需求</div>
+			 <div id="describe" style="background-color:#78FF78; text-align:center; height:50px; line-height:25px; width:200px;  float:right;">有此服務會不滿意</br>沒有它反而會滿意</div>
+             <div id="english"  style="background-color:#8CFF8C; text-align:center; height:50px; line-height:50px; margin-left:80px;margin-right:100px;">R型</div>
+		</div>
+		<div id="I1" style="display:none;  width:400px; font-size:13px; ">
+             <div id="chiness"  style="background-color:#9999FF; text-align:center; height:50px; line-height:50px; width:80px;   float:left;">無差異需求</div>
+			 <div id="describe" style="background-color:#6E6EFF; text-align:center; height:50px; line-height:50px; width:200px;  float:right;">有或沒有此服務都無所謂</div>
+             <div id="english"  style="background-color:#8282FF; text-align:center; height:50px; line-height:50px; margin-left:80px;margin-right:100px;">I型</div>
+		</div>
+		<div id="Q1" style="display:none;  width:400px; font-size:13px; ">
+             <div id="chiness"  style="background-color:#CFCFCF; text-align:center; height:50px; line-height:50px; width:80px;   float:left;">表示可疑結果</div>
+			 <div id="describe" style="background-color:#BABABA; text-align:center; height:50px; line-height:50px; width:200px;  float:right;">您是否在填寫問題答案時填錯</div>
+             <div id="english"  style="background-color:#C4C4C4; text-align:center; height:50px; line-height:50px; margin-left:80px;margin-right:100px;">Q型</div>
+		</div>
+		</font>
+		</center>
+		<?php	         	
+    } else {
+		//echo "進入雙人細節";?>
+	    <center>
+	    <h3>雙人分析結果</h3> <hr size="3" width="200" color="#b0e0e6" noshade /> 
+        <form name="twodetail" method="get" action="twodetail.php">		<?php
+        
+	    //$select_item=$_SESSION["select_item"];   //讀取選了幾個項目	    
+	    echo "請選擇欲察看細項之項目"."</br></br>";
+	    //echo "總共選取".$select_item."項"."</br>";
+	
+        $sql = "SELECT A,B,C,D,E,F,G,H,I,J FROM twoanswer WHERE phone=$userphone";  //使用者所選項目
+        $result = mysqli_query($link,$sql);
+        $row=mysqli_fetch_row($result);
+	
+	    $i=0;
+        while($meta=mysqli_fetch_field($result)){    //一次顯示一個欄位名
+			    if($row[$i]!=0){
+			       //echo $meta->name."+";
+			       $sq="SELECT * FROM itemnum WHERE itemnum=$i+1";
+		           $resul = mysqli_query($link,$sq);
+                   $ro=mysqli_fetch_assoc($resul);
+			       //echo "</br><font face='DFKai-sb' color='#1e90ff' size='4'>";
+		           //echo $ro["itemcode"]."->".$ro["itemname"]; ?>
+			       <input type="submit" name="twodetail" value="<?php echo $ro["itemname"]; ?>" style="width:80px;height:25px; border:2px #87cefa double; background-color:#add8e6;" ><?php
+			       $i++;
+			    }else{$i++;}
+	    }?>
+		</form></br></br></br><input type="submit" name="back" value="返回功能表" style="width:80px;height:25px; border:2px #FFB5B5 double; background-color:#FFBFBF;" onclick="location.href= ('http://localhost:8080/meeting/functionselect.php')"/>			
+		</center><?php
+	}?>
+</body>
+</head>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>"另一伴連結編輯"</title>
+<script type="text/javascript">  //彈跳視窗(手機號密碼，未填)
+  function chk(){
+    if(document.resetano.phone.value==''){
+      alert('欲設定之另一伴手機號碼未填');
+      document.resetano.phone.focus();
+      return false;
+    }
+    return true;
+  }
+</script>
+<style>
+   body{
+	   background-image:url(14.jpg);	  
+	   background-repeat:no-repeat;
+	   background-position:center ;
+	   background-size:cover;
+   }
+</style>
+<body  text="#ff69b4">
+  
+<?php
+    session_start(); 
+    $userphone=$_SESSION["userphone"];
+  
+    if(isset($_GET["delete"])){      //選取"我要刪除"
+       $link =@mysqli_connect('localhost','root','1234','meeting');
+       mysqli_query($link,'SET NAMES utf8');
+       $sql="UPDATE user SET pair='',anophone='' WHERE phone='$userphone'";  //刪除使用者的另一伴電話與組數
+	   mysqli_query($link,$sql);?>
+	   <center>
+	      <font face="DFKai-sb" color="red">刪除完成，以後江湖不見!</font><br/>
+	      <input type="submit" name="back" value="完成" style="width:80px;height:25px; border:2px #ffb6c1 double; background-color:#ff4500;" onclick="location.href= ('http://localhost:8080/meeting/functionselect.php')"/>
+	   </center><?php	
+	   
+    }else if(isset($_GET["reset"])){ //選取"我要修改"?>
+	         <h3>請填入新另一伴的資料</h3>
+             <form name="resetano" method="get" action="reconnect.php" onsubmit="return chk();">
+	              <font face="DFKai-sb">新另一伴的電話號碼:</font><input type="text" name="phone" size="12"><br/><br/>
+	              <input type="submit" name="resetano" value="修改" style="width:80px;height:25px; border:2px #ffb6c1 double; background-color:#ffc0cb;">
+	         </form> <?php
+			 
+    }else if($_GET["add"]){          //選取"新增"
+	        $phone=$_GET["phone"];
+            if($phone !=""){
+	            $link =@mysqli_connect('localhost','root','1234','meeting');
+                mysqli_query($link,'SET NAMES utf8');
+	
+	            $sql = "SELECT * FROM user WHERE phone='$phone'";      //查詢另一伴是否有註冊
+	            $result = mysqli_query($link,$sql);  
+	            $num=mysqli_num_rows($result);
+	            if($num>0){
+	                while($row = mysqli_fetch_assoc($result)){	  
+                        if($row["anophone"]==$userphone||$row["anophone"]==" "){               //檢查另一伴的另一伴號碼為 自己或是空值
+				            $sql1="SELECT * FROM user WHERE pair=(SELECT MAX(pair) FROM user)";			
+			                $result1= mysqli_query($link,$sql1);
+			                while($row1 = mysqli_fetch_array($result1,MYSQLI_ASSOC)){
+					               $maxpair=$row1["pair"];
+			                }
+			                $setpair=$maxpair+1;
+			                $sql2="UPDATE user SET pair='$setpair',anophone='$phone' WHERE phone='$userphone'";  //給予組數
+	                        mysqli_query($link,$sql2);
+                            $sql3="UPDATE user SET pair='$setpair',anophone='$userphone' WHERE phone='$phone'";
+	                        mysqli_query($link,$sql3);
+                            echo "新增完畢~";?></br>
+                            <input type="submit" name="back" value="確認" style="width:80px;height:25px; border:2px #ff69b4 double; background-color:#ffc0cb;" onclick="location.href= ('http://localhost:8080/meeting/functionselect.php')"/>	<?php
+			            }else{	            
+	                        echo "</br></br></br></br><center><font color='red' size='4'>";
+	                        echo "此手機號碼並非與您配對</br>請重新輸入";
+	                        echo "</font>";?></br>
+				            <input type="submit" name="connect" value="返回" style="width:80px;height:25px; border:2px #ffb6c1 double; background-color:#ff4500;" onclick="location.href= ('http://localhost:8080/meeting/anoconnect.php')"/>
+				            </br></br></br>
+				            <img src="77.jpg" align="bottom" width="300" height="250"/><?php
+	                    }
+                    }  
+	            }else{
+		            echo " <center>";
+		            echo "<font face='DFKai-sb' color='##ff0000' size='4'>";
+		            echo "此電話並無人註冊，請再次確認電話號碼";
+		            echo "</font>";?></br>
+		            <img src="77.jpg" align="bottom" width="300" height="250"/>
+		            </br>
+                    <input type="submit" name="connect" value="返回" style="width:80px;height:25px; border:2px #ffb6c1 double; background-color:#ff4500;" onclick="location.href= ('http://localhost:8080/meeting/anoconnect.php')"/>
+                    </center><?php
+	            }   		
+    }
+   }  
+  ?>
+  </body>
+  </head>
+  </html>
