@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>分析結果</title>
+<style>
+   body{
+	   background-image:url(17.jpg);	  
+	   background-repeat:no-repeat;
+	   background-position:center top;
+	   background-size:cover;
+   }
+</style>
+</head>
+<body  text="#4169e1">
+<?php
+    $link =@mysqli_connect('localhost','root','1234','meeting');
+    mysqli_query($link,'SET NAMES utf8');
+    session_start();
+    $userphone = $_SESSION["userphone"]; 
+	
+	$sql="SELECT A,B,C,D,E,F,G,H,I,J FROM answer WHERE phone=$userphone";   //項目優先序
+    $result=mysqli_query($link,$sql);
+    $row=mysqli_fetch_row($result);
+
+    $seq=array();
+    $num=0;      //項目數目
+    for($i=1; $i<=10; $i++){
+	    if($row[$i-1]!=0){
+		    $sql2="SELECT itemname FROM itemnum WHERE itemnum='$i'";
+		    $result2=mysqli_query($link,$sql2);
+		    $row2=mysqli_fetch_row($result2);
+		    $seq["$row2[0]"]=$row[$i-1];
+		    $num++;
+	    }
+    }
+    //arsort($seq);
+	//print_r($seq);
+	
+	$sql3="SELECT * FROM user WHERE phone=$userphone";      //找出使用者性別,姓名
+    $result3=mysqli_query($link,$sql3);
+    $row3=mysqli_fetch_assoc($result3);
+	
+	if($row3["gender"]==1){?>
+	    </br></br></br></br></br>
+	    <div style=" background-color:#FFC9C9; height:25px; line-height:25px; width:320px; ">
+		     <?php echo $row3["name"];?>小姐姐您好，感謝您填寫我們的問卷!
+		</div><?php
+    }else{?>
+		<div style=" background-color:#FFC9C9; height:25px; line-height:25px; width:320px; ">
+		     <?php echo $row3["name"];?>小哥哥您好，感謝您填寫我們的問卷!
+		</div><?php
+    }
+    $it=array_keys($seq);
+    $j=$num;
+	echo "<div style=' background-color:#FFFFC9; height:25px; line-height:25px; width:320px; '>您的</br>";
+    for($i=1; $i<=$num; $i++){
+	    echo "<div style=' background-color:#FFFFC9; height:25px; line-height:25px; width:320px; '>第".$i."順位為"."<strong>".$it[$i-1]."</strong></br>";
+	   
+    }?>
+	</div></br></br>
+	<input type="submit" name="back"  value="返回功能表" style="width:100px;height:25px; border:2px #B5FFB5 double; background-color:#C9FFC9;" onclick="location.href= ('https://mebabybaby07.github.io/mebabybaby07.github.io./functionselect.html')"/>
+	<input type="submit"  name="onedetailcho"   value="查看各項目細節" style="width:120px;height:25px; border:2px #ADADFF double; background-color:#C2C2FF;" onclick="location.href= ('https://mebabybaby07.github.io/mebabybaby07.github.io./onedetail.html')"/>
+</body>
+</head>
+</html> 

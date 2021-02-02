@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>分析結果</title>
+<style>
+   body{
+	   background-image:url(17.jpg);	  
+	   background-repeat:no-repeat;
+	   background-position:center top;
+	   background-size:cover;
+   }
+</style>
+</head>
+<body  text="#0000ff">
+<?php html
+    $link =@mysqli_connect('localhost','root','1234','meeting');
+    mysqli_query($link,'SET NAMES utf8');
+    session_start();
+    $userphone = $_SESSION["userphone"]; 
+
+    //單人模式
+    if(isset($_GET["answer"])){
+        $select_item=$_SESSION["select_item"];     //讀取選了幾個項目
+        if(isset($_SESSION["qid"])){         //"讀取"應填的問題代碼  
+	        $qid = $_SESSION["qid"];
+        }
+        $q=0; $r=0;	$a=0; $o=0; $m=0; $i=0;  //各需求個數為0
+	    $si=0; $dsi=0; $distance=0;
+	    mb_internal_encoding("UTF-8");    //提取第一個問題代碼的英文
+	    $itemf=$qid[0];
+        $itemfirst = mb_substr($itemf, 0, 1);  //位元移動取第一位
+        //echo "第一個問題代碼".$itemfirst;
+        $itemsec=0;
+	    $totalitem=array();
+	
+	    $sql4="SELECT * FROM answer WHERE phone=$userphone";               
+        $result4=mysqli_query($link,$sql4);
+	    $userexist=0;
+	    $userexist=mysqli_num_rows($result4);
+        if($userexist!=0){
+		    $sql5="DELETE FROM answer WHERE phone=$userphone";
+	        mysqli_query($link,$sql5);
+        }
+
+        for($h=0; $h<count($qid); $h++){
+            $ans[$h] = $_GET ["Q".$h];		
+            //"顯示"問題代碼-感受數字 //echo $qid[$h]."-".$ans[$h]; 
+		
+		    //第一次填單人插入手機號資料庫
+		    $sql="INSERT INTO answer (phone) values('$userphone')";               
+            mysqli_query($link,$sql);
+		
+		    //更新答案資料庫
+		    $sqll="UPDATE answer SET $qid[$h]=$ans[$h] WHERE phone=$userphone";   
+		    mysqli_query($link,$sqll);
+		
+		    //比對一組問題的"需求類型"
+		
+		    //提取問題代碼的英文
+		    mb_internal_encoding("UTF-8");         
+	        $items=$qid[$h];
+            $itemsec = mb_substr($items, 0, 1);
+			//echo "第二個問題代碼".$itemsec;
+  
+		    if($itemsec==$itemfirst){
+				//echo $qid[$h];
+		        while($h%2==1){                                                   
+			        if(($ans[$h-1]==1 && $ans[$h]==1 )|| ($ans[$h-1]==5 &&$ans[$h]==5)){
+			            //echo "您的Q型";  
+				        $q++;
+			        }else if( ($ans[$h-1]==2 && $ans[$h]==1) || ($ans[$h-1]==3 && $ans[$h]==1) || ($ans[$h-1]==4 && $ans[$h]==1) || ($ans[$h-1]==5 && $ans[$h]==1)){
+				        //echo "您的R型  ";  
+						$r++;
+					}else if( ($ans[$h-1]==5 && $ans[$h]==2) || ($ans[$h-1]==5 && $ans[$h]==3) || ($ans[$h-1]==5 && $ans[$h]==4)){
+				        //echo "您的R型  ";  
+						$r++;
+			        }else if( ($ans[$h-1]==1 && $ans[$h]==2) || ($ans[$h-1]==1 && $ans[$h]==3) || ($ans[$h-1]==1 && $ans[$h]==4)){
+				        //echo "您的A型  ";  
+						$a++;
+			        }else if( $ans[$h-1]==1 && $ans[$h]==5 ) {
+				        //echo "您的O型  ";  
+						$o++;
+			        }else if( ($ans[$h-1]==2 && $ans[$h]==5) || ($ans[$h-1]==3 && $ans[$h]==5) || ($ans[$h-1]==4 && $ans[$h]==5)){
+				        //echo "您的M型  ";  
+						$m++;
+			        }else {
+				        //echo "您的I型  ";  
+						$i++;
+			        }
+			        break;
+		        }		
+		    }else{
+				//echo "Q有".$q."個，R有".$r."個，A有".$a."個，O有".$o."個，M有".$m."個，I有".$i."個";  //上一個項目需求數量總和
+			    $si=($a+$o)/($a+$o+$m+$i);
+	            $dsi=(-1)*($o+$m)/($a+$o+$m+$i);
+	            $distance=sqrt($si*$si+$dsi*$dsi);
+			    $q=0;
+			    $r=0;
+				$a=0;
+			    $o=0;
+			    $m=0;
+			    $i=0;
+	            //echo $itemfirst."的Si=".$si; $si=0;
+	            //echo $itemfirst."的Dsi=".$dsi; $dsi=0;
+	            //echo $itemfirst."的Distance=".$distance;
+			    $totalitem["$itemfirst"]=$distance;
+			    $distance=0;
+			    $itemfirst=$itemsec;?><br/><?php
+		    }	
+        }
+	    //echo "Q有".$q."個，R有".$r."個，A有".$a."個，O有".$o."個，M有".$m."個，I有".$i."個"; //最後一個項目需求數量總和
+	    $si=($a+$o)/($a+$o+$m+$i);            //分析最後一個項目的影響值與距離值
+	    $dsi=(-1)*($o+$m)/($a+$o+$m+$i);
+	    $distance=sqrt($si*$si+$dsi*$dsi);
+	    //echo $itemsec."的Si=".$si;
+	    //echo $itemsec."的Dsi=".$dsi;
+	    //echo $itemsec."的Distance=".$distance;
+	    $totalitem["$itemsec"]=$distance;
+	
+	    arsort($totalitem);    //將所有項目的距離做由大到小的排列
+        //print_r($totalitem);    //顯示項目及其距離
+	    //print_r(array_keys($totalitem));
+		$sql7 = "SELECT *FROM user WHERE phone='$userphone' ";   //顯示項目排序
+        $result7=mysqli_query($link,$sql7);
+	    $row7=mysqli_fetch_assoc($result7);
+		
+	
+	    $it=array_keys($totalitem);
+		$sql8="UPDATE answer SET A=0,B=0,C=0,D=0,E=0,F=0,G=0,H=0,I=0,J=0 WHERE phone=$userphone";
+		mysqli_query($link,$sql8);
+		
+        echo "</br><div style=' background-color:#FFC9C9; height:25px; line-height:25px; width:370px; '>".$row7["name"]."您的答案已經分析完畢囉~以下為您的排序:</div>";
+	    for($i=0; $i<$select_item; $i++){
+		    $sql6 = "SELECT * FROM itemnum WHERE itemcode='$it[$i]'";   //顯示項目排序
+            $result6=mysqli_query($link,$sql6);
+	        $row6=mysqli_fetch_assoc($result6);
+	        echo "<div style=' background-color:#FFECC9; height:25px; line-height:25px; width:370px; '>第".($i+1)."順位之項目為".$row6["itemname"];
+	        $sql7 = "UPDATE answer SET $it[$i]=$i+1 WHERE phone=$userphone";
+			mysqli_query($link,$sql7);
+		}?>
+		</div><br/>
+        <input type="submit" name="back" value="確認" style="width:70px;height:25px; border:2px #FFFF78 double; background-color:#FFFFC9" onclick="location.href= ('https://mebabybaby07.github.io/mebabybaby07.github.io./functionselect.html')"/>
+        <input type="submit" name="onedetail"   value="查看各項目細節" style="width:150px;height:25px; border:2px #78FF78	 double; background-color:#C9FFC9;" onclick="location.href= ('https://mebabybaby07.github.io/mebabybaby07.github.io./onedetail.html')"/><?php
+	}else if(isset($_GET["twoanswer"])){
+	//雙人模式
+	    $select_item=$_SESSION["select_item"];   //讀取選了幾個項目
+	    $pair=$_SESSION["pair"];
+	    $anophone=$_SESSION["anophone"];
+	    $userans=array();
+
+	    if (isset($_SESSION["qid"]) ){            //"讀取"應填的問題代碼  
+	        $qid = $_SESSION["qid"];
+        }
+	
+	    $sql4="SELECT * FROM twoanswer WHERE phone=$userphone";               
+        $result4=mysqli_query($link,$sql4);
+	    $userexist=0;
+	    $userexist=mysqli_num_rows($result4);
+        if($userexist!=0){
+		    $sql5="DELETE FROM twoanswer WHERE phone=$userphone";
+	        mysqli_query($link,$sql5);
+        }
+	
+	    for($h=0; $h<count($qid); $h++){
+            $ans[$h] = $_GET ["Q".$h];		
+            //"顯示"問題代碼-感受數字 
+			//echo $qid[$h]."-".$ans[$h]; 
+		    //第一次填單人插入手機號資料庫
+		    $sql="INSERT INTO twoanswer (pair,phone) values('$pair','$userphone')";               
+            mysqli_query($link,$sql);		
+		    //更新答案資料庫
+		    $sqll="UPDATE twoanswer SET $qid[$h]=$ans[$h] WHERE phone=$userphone";   
+		    mysqli_query($link,$sqll);
+	    }
+		
+    	$sql = "SELECT phone FROM twoanswer WHERE phone=$anophone";    //檢查另一伴是否已經填問卷了
+	    $result=mysqli_query($link,$sql);
+	    $num=mysqli_num_rows($result);
+
+        if($num>0){
+        			
+	        //另一伴已填
+	        $q=0; $r=0;	$a=0; $o=0; $m=0; $i=0;           //使用者各需求個數為0
+		    $q1=0; $r1=0;	$a1=0; $o1=0; $m1=0; $i1=0;   //另一伴各需求個數為0
+	        $si=0; $dsi=0; $distance=0;
+				
+		    mb_internal_encoding("UTF-8");    //提取第一個問題代碼的英文
+	        $itemf=$qid[0];
+            $itemfirst = mb_substr($itemf, 0, 1);  //位元移動取第一位
+		
+		    for($h=0; $h<count($qid); $h+=2){
+			    //提取問題代碼的英文
+		        mb_internal_encoding("UTF-8");         
+	            $items=$qid[$h];
+                $itemsec = mb_substr($items, 0, 1);
+			
+			    //讀取使用者正面題目之選項
+			    $sql1="SELECT $qid[$h] FROM twoanswer WHERE phone=$userphone"; 
+			    $result1=mysqli_query($link,$sql1);
+			    $row1=mysqli_fetch_row($result1);
+		        //echo $row1[0]."+";               //正面問題的答案(使用者)
+			
+			    //讀取使用者反面題目之選項
+			    $k=$h+1;
+			    $sql2="SELECT $qid[$k] FROM twoanswer WHERE phone=$userphone"; 
+			    $result2=mysqli_query($link,$sql2);
+			    $row2=mysqli_fetch_row($result2);
+		        //echo $row2[0]."  ";             //反面問題的答案(使用者)
+						
+			    //讀取另一伴正面題目之選項
+			    $sql3="SELECT $qid[$h] FROM twoanswer WHERE phone=$anophone"; 
+			    $result3=mysqli_query($link,$sql3);
+			    $row3=mysqli_fetch_row($result3);
+		        //echo $row3[0]."-";               //正面問題的答案(另一伴)
+			
+			    //讀取另一伴反面題目之選項
+			    $sql4="SELECT $qid[$k] FROM twoanswer WHERE phone=$anophone"; 
+			    $result4=mysqli_query($link,$sql4);
+			    $row4=mysqli_fetch_row($result4);
+		        //echo $row4[0]."  ";             //反面問題的答案(另一伴)
+			
+			    if($itemsec==$itemfirst){ 
+			        //使用者分析
+			        if(($row1[0]==1 &&$row2[0]==1 )|| ($row1[0]==5 &&$row2[0]==5)){
+			            //echo "您的Q型";  
+				        $q++;
+			        }else if( ($row1[0]==2 && $row2[0]==1) || ($row1[0]==3 && $row2[0]==1) || ($row1[0]==4 && $row2[0]==1) || ($row1[0]==5 && $row2[0]==1)){
+				        //echo "您的R型  ";  
+						$r++;
+					}else if( ($row1[0]==5 && $row2[0]==2) || ($row1[0]==5 && $row2[0]==3) || ($row1[0]==5 && $row2[0]==4)){
+				        //echo "您的R型  ";  
+						$r++;
+			        }else if( ($row1[0]==1 && $row2[0]==2) || ($row1[0]==1 && $row2[0]==3) || ($row1[0]==1 && $row2[0]==4)){
+				        //echo "您的A型  ";  
+						$a++;
+			        }else if( $row1[0]==1 && $row2[0]==5 ) {
+				        //echo "您的O型  ";  
+						$o++;
+			        }else if( ($row1[0]==2 && $row2[0]==5) || ($row1[0]==3 && $row2[0]==5) || ($row1[0]==4 && $row2[0]==5)){
+				        //echo "您的M型  ";  
+						$m++;
+			        }else {
+				        //echo "您的I型  ";  
+						$i++;
+			        }
+				    //另一伴分析
+			        if(($row3[0]==1 &&$row4[0]==1 )|| ($row3[0]==5 &&$row4[0]==5)){
+			            //echo "一半Q型";  
+				        $q1++;
+			        }else if( ($row3[0]==2 && $row4[0]==1) || ($row3[0]==3 && $row4[0]==1) || ($row3[0]==4 && $row4[0]==1) || ($row3[0]==5 && $row4[0]==1)){
+				        //echo "一半R型  ";  
+						$r1++;
+					}else if( ($row3[0]==5 && $row4[0]==2) || ($row3[0]==5 && $row4[0]==3) || ($row3[0]==5 && $row4[0]==4)){
+				        //echo "一半R型  ";  
+						$r1++;
+			        }else if( ($row3[0]==1 && $row4[0]==2) || ($row3[0]==1 && $row4[0]==3) || ($row3[0]==1 && $row4[0]==4)){
+				        //echo "一半A型  ";  
+						$a1++;
+			        }else if( $row3[0]==1 && $row4[0]==5 ) {
+				        //echo "一半O型  ";  
+						$o1++;
+			        }else if( ($row3[0]==2 && $row4[0]==5) || ($row3[0]==3 && $row4[0]==5) || ($row3[0]==4 && $row4[0]==5)){
+				        //echo "一半M型  ";  
+						$m1++;
+			        }else {
+				        //echo "一半I型  ";  
+						$i1++;
+			        } 	
+		        }else{
+				    //紀錄項目需求個數(總和)
+				    //$total["$itemfirst-Q"]=$q+$q1;
+				    //$total["$itemfirst-R"]=$r+$r1;
+		            //$total["$itemfirst-A"]=$a+$a1;
+		            //$total["$itemfirst-O"]=$o+$o1;
+		            //$total["$itemfirst-M"]=$m+$m1;
+		            //$total["$itemfirst-I"]=$i+$i1;
+				    $total["$itemfirst-si"]=($a+$a1+$o+$o1)/($a+$a1+$o+$o1+$m+$m1+$i+$i1);
+		            $total["$itemfirst-dsi"]=($o+$o1+$m+$m1)/($a+$a1+$o+$o1+$m+$m1+$i+$i1);
+				    $total["$itemfirst-distance"]=sqrt($total["$itemfirst-si"]*$total["$itemfirst-si"]+$total["$itemfirst-dsi"]*$total["$itemfirst-dsi"]);
+				    $artotal["$itemfirst"]=sqrt($total["$itemfirst-si"]*$total["$itemfirst-si"]+$total["$itemfirst-dsi"]*$total["$itemfirst-dsi"]);
+				    
+					//紀錄項目需求個數(使用者)
+				    //$userans["$itemfirst-Q"]=$q;
+				    //$userans["$itemfirst-R"]=$r;
+				    //$userans["$itemfirst-A"]=$a;
+				    //$userans["$itemfirst-O"]=$o;
+				    //$userans["$itemfirst-M"]=$m;
+				    //$userans["$itemfirst-I"]=$i;
+			        //echo "Q有".$q."個，R有".$r."個，A有".$a."個，O有".$o."個，M有".$m."個，I有".$i."個";
+			        $q=0; $a=0; $r=0; $o=0; $m=0; $i=0;
+					
+				    if(($row1[0]==1 &&$row2[0]==1 )|| ($row1[0]==5 &&$row2[0]==5)){
+			            //echo "您的Q型";  
+				        $q++;
+			        }else if( ($row1[0]==2 && $row2[0]==1) || ($row1[0]==3 && $row2[0]==1) || ($row1[0]==4 && $row2[0]==1) || ($row1[0]==5 && $row2[0]==1)){
+				        //echo "您的R型  ";  
+						$r++;
+					}else if( ($row1[0]==5 && $row2[0]==2) || ($row1[0]==5 && $row2[0]==3) || ($row1[0]==5 && $row2[0]==4)){
+				        //echo "您的R+型  ";  
+						$r++;
+			        }else if( ($row1[0]==1 && $row2[0]==2) || ($row1[0]==1 && $row2[0]==3) || ($row1[0]==1 && $row2[0]==4)){
+				        //echo "您的A型  ";  
+						$a++;
+			        }else if( $row1[0]==1 && $row2[0]==5 ) {
+				        //echo "您的O型  ";  
+						$o++;
+			        }else if( ($row1[0]==2 && $row2[0]==5) || ($row1[0]==3 && $row2[0]==5) || ($row1[0]==4 && $row2[0]==5)){
+				        //echo "您的M型  ";  
+						$m++;
+			        }else {
+				        //echo "您的I型  ";  
+						$i++;
+			        }
+				    //紀錄項目需求個數(另一伴)
+				    //$anoans["$itemfirst-Q"]=$q1;
+				    //$anoans["$itemfirst-R"]=$r1;
+				    //$anoans["$itemfirst-A"]=$a1;
+				    //$anoans["$itemfirst-O"]=$o1;
+				    //$anoans["$itemfirst-M"]=$m1;
+				    //$anoans["$itemfirst-I"]=$i1;
+			        //echo "Q型".$q1."個";//echo "R型".$a1."個";//echo "R型".$r1."個";//echo "O型".$o1."個"; //echo "M型".$m1."個"; //echo "I型".$i1."個";
+			        $q1=0;
+			        $a1=0;				
+			        $r1=0;			    
+			        $o1=0;			   
+			        $m1=0;			   
+			        $i1=0;
+				    if(($row3[0]==1 &&$row4[0]==1 )|| ($row3[0]==5 &&$row4[0]==5)){
+			            //echo "一半Q型";  
+				        $q1++;
+			        }else if( ($row3[0]==2 && $row4[0]==1) || ($row3[0]==3 && $row4[0]==1) || ($row3[0]==4 && $row4[0]==1) || ($row3[0]==5 && $row4[0]==1)){
+				        //echo "一半R型  ";  
+						$r1++;
+					}else if( ($row3[0]==5 && $row4[0]==2) || ($row3[0]==5 && $row4[0]==3) || ($row3[0]==5 && $row4[0]==4)){
+				        //echo "一半R型  ";  
+						$r1++;
+			        }else if( ($row3[0]==1 && $row4[0]==2) || ($row3[0]==1 && $row4[0]==3) || ($row3[0]==1 && $row4[0]==4)){
+				        //echo "一半A型  ";  
+						$a1++;
+			        }else if( $row3[0]==1 && $row4[0]==5 ) {
+				        //echo "一半O型  ";  
+						$o1++;
+			        }else if( ($row3[0]==2 && $row4[0]==5) || ($row3[0]==3 && $row4[0]==5) || ($row3[0]==4 && $row4[0]==5)){
+				        //echo "一半M型  ";  
+						$m1++;
+			        }else {
+				        //echo "一半I型  ";  
+						$i1++;
+			        }
+				    $itemfirst=$itemsec;
+		        }           			
+		    }?><br/><?php
+		    //紀錄使用者最後一個項目的需求數
+		        //$userans["$itemfirst-Q"]=$q;
+		        //$userans["$itemfirst-R"]=$r;
+		        //$userans["$itemfirst-A"]=$a;
+		        //$userans["$itemfirst-O"]=$o;
+		        //$userans["$itemfirst-M"]=$m;
+		        //$userans["$itemfirst-I"]=$i;
+		        //echo "使用者:";
+	            //print_r($userans);?><br/><?php
+		    //紀錄另一半最後一個項目的需求數
+		        //$anoans["$itemfirst-Q"]=$q1;
+		        //$anoans["$itemfirst-R"]=$r1;
+		        //$anoans["$itemfirst-A"]=$a1;
+		        //$anoans["$itemfirst-O"]=$o1;
+		        //$anoans["$itemfirst-M"]=$m1;
+		        //$anoans["$itemfirst-I"]=$i1;
+		        //echo "另一伴:";
+	            //print_r($anoans);
+		    //紀錄總和最後一個項目的需求數
+		        //$total["$itemfirst-Q"]=$q+$q1;
+		        //$total["$itemfirst-R"]=$r+$r1;
+		        //$total["$itemfirst-A"]=$a+$a1;
+		        //$total["$itemfirst-O"]=$o+$o1;
+		        //$total["$itemfirst-M"]=$m+$m1;
+		        //$total["$itemfirst-I"]=$i+$i1;
+		    $total["$itemfirst-si"]=($a+$a1+$o+$o1)/($a+$a1+$o+$o1+$m+$m1+$i+$i1);
+		    $total["$itemfirst-dsi"]=($o+$o1+$m+$m1)/($a+$a1+$o+$o1+$m+$m1+$i+$i1);
+		    $total["$itemfirst-distance"]=sqrt($total["$itemfirst-si"]*$total["$itemfirst-si"]+$total["$itemfirst-dsi"]*$total["$itemfirst-dsi"]);
+		    $artotal["$itemfirst"]=sqrt($total["$itemfirst-si"]*$total["$itemfirst-si"]+$total["$itemfirst-dsi"]*$total["$itemfirst-dsi"]);
+		    //echo "總合為->";
+	        //print_r($total);
+		    //排序
+		    arsort($artotal);
+            //echo "新總合為:";
+	        //print_r($artotal);
+		
+		    $it=array_keys($artotal);
+		    $sql1="UPDATE twoanswer SET A=0,B=0,C=0,D=0,E=0,F=0,G=0,H=0,I=0,J=0 WHERE phone=$userphone";
+		    mysqli_query($link,$sql1);
+		    $sql2="UPDATE twoanswer SET A=0,B=0,C=0,D=0,E=0,F=0,G=0,H=0,I=0,J=0 WHERE phone=$anophone";
+		    mysqli_query($link,$sql2);
+		
+			$sql3="SELECT * FROM user WHERE phone=$anophone";      //找出另一伴性別,姓名，
+            $result3=mysqli_query($link,$sql3);
+            $row3=mysqli_fetch_assoc($result3);
+			$sql4="SELECT * FROM user WHERE phone=$userphone";      //找出另一伴性別,姓名，
+            $result4=mysqli_query($link,$sql4);
+            $row4=mysqli_fetch_assoc($result4);
+            
+			echo "<table><td><div style=' background-color:#FFC9C9; height:25px; line-height:25px; width:360px; '>".$row4["name"]."，合計兩位的答案，您與".$row3["name"]."的分析結果為:"."</br></div>";
+		    for($i=0; $i<$select_item; $i++){
+			    $sql1 = "SELECT itemname FROM itemnum WHERE itemcode='$it[$i]'";   //顯示項目排序
+                $result1=mysqli_query($link,$sql1);
+			    $row1=mysqli_fetch_row($result1);
+			    echo "<div style=' background-color:#FFECC9; height:25px; line-height:25px; width:360px; '>第".($i+1)."順位之項目為".$row1[0];?></br><?php
+			    $sql2="UPDATE twoanswer SET $it[$i]=$i+1 WHERE phone=$userphone";  //儲存項目排序
+			    mysqli_query($link,$sql2);
+			    $sql3="UPDATE twoanswer SET $it[$i]=$i+1 WHERE phone=$anophone";
+			    mysqli_query($link,$sql3);
+		    }?>
+			</br>
+            <input type="submit" name="back" value="確認" style="width:80px;height:25px; border:2px #FFFF78 double; background-color:#FFFFC9;" onclick="location.href= ('https://mebabybaby07.github.io/mebabybaby07.github.io./functionselect.html')"/>
+	        <input type="submit" name="twodetail"   value="查看雙方細節" style="width:120px;height:25px; border:2px #78FF78	 double; background-color:#C9FFC9;" onclick="location.href= ('https://mebabybaby07.github.io/mebabybaby07.github.io./twodetail.html')"/>
+		    <td>
+            <td><img src="TE.html"></td>
+			<td><div style=" background-color:#E8C9FF; height:125px; line-height:25px; width:350px; ">
+		     如右圖所示</br>SI值表示滿意的影響力，DSI值則不滿意的影響力</br>他們兩者會影響您對此服務的敏感度</br>
+			 圖上項目距離左上角，也就是原點越遠</br>表示這個項目對你們而言越重要</br>
+	            </div>
+            </td><?php
+		
+		}else{
+		    //另一伴未填
+		    $sql1="SELECT * FROM user WHERE phone=$anophone";      //找出另一伴性別,姓名
+            $result1=mysqli_query($link,$sql1);
+            $row1=mysqli_fetch_assoc($result1);
+		
+		    echo "<font face='DFKai-sb' color='#1e90ff' size='4'>";
+		    echo "您的另一伴，".$row1["name"];
+		    if($row1["gender"]==1){	
+		        echo "小姐尚未填寫此問卷喔~~~"."</br>"."請提醒她快去完成~~~";
+		        echo "</font>";
+		    }else{
+			    echo "先生尚未填寫此問卷喔~~~"."</br>"."請提醒他快去完成~~~";
+		        echo "</font>";
+		    }?>
+		    </br>
+		    <input type="submit" name="back" value="返回功能表"  style="width:80px;height:25px; border:2px #87cefa double; background-color:#87cefa;" onclick="location.href= ('https://mebabybaby07.github.io/mebabybaby07.github.io./functionselect.html')"/><?php
+	    }
+    }?> 
+</body>
+</head>
+</html> 

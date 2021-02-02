@@ -35,13 +35,13 @@ body{
 	                    $_SESSION["username"]=$row["name"];
 			            $_SESSION["userphone"]=$row["phone"];
 			            $_SESSION["usergender"]=$row["gender"];
-	                    header("Location:functionselect.php");
+	                    header("Location:functionselect.html");
 					    //順利登入，進入功能選擇
                   }else{
                         ?> 
 					    <center></br></br></br>
  			            <font face='DFKai-sb' color='red' size='5'>手機號碼或是密碼錯誤</font><br/>	            
-				        <input type="submit" name="relogin" value="重新登入" style="width:80px;height:25px; border:2px #ff0000 double; background-color:#ff7f50;" onclick="location.href= ('http://localhost:8080/meeting/userlogin.php')"/>
+				        <input type="submit" name="relogin" value="重新登入" style="width:80px;height:25px; border:2px #ff0000 double; background-color:#ff7f50;" onclick="location.href= ('https://mebabybaby07.github.io/mebabybaby07.github.io./userlogin.html')"/>
                         </br></br></br></br></br>
 				        <img src="777.png" align="bottom" width="300" height="300"/>	
 						</center>
@@ -54,7 +54,7 @@ body{
 		    echo"<center></br></br></br><font face='DFKai-sb' color='red' size='5'>"; 
 		    echo "查無此手機號"."</font>"; 
 		    ?></br>
-			<input type="submit" name="relogin" value="重新登入" style="width:80px;height:25px; border:2px #ff0000 double; background-color:#ff7f50;" onclick="location.href= ('http://localhost:8080/meeting/userlogin.php')"/> 
+			<input type="submit" name="relogin" value="重新登入" style="width:80px;height:25px; border:2px #ff0000 double; background-color:#ff7f50;" onclick="location.href= ('https://mebabybaby07.github.io/mebabybaby07.github.io./userlogin.html')"/> 
 	        </br></br></br></br></br>
 	        <img src="777.png" align="bottom" width="300" height="300"/>	</center> <?php
 	   }    

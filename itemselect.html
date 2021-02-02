@@ -1,0 +1,103 @@
+<?php //使用者選擇項目?>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>婚備項目選擇</title>
+<style>
+   body{
+	   background-image:url(15.jpg);	  
+	   background-repeat:no-repeat;
+	   background-position:center;
+	   background-size:cover;
+   }
+</style>
+</head>
+<body  text="#ff69b4"> 
+<?php
+    session_start(); 
+    $userphone=$_SESSION["userphone"];
+	
+	if(isset($_GET["itemchoice"])){
+		$link =@mysqli_connect('localhost','root','1234','meeting');
+        mysqli_query($link,'SET NAMES utf8');
+		
+		$sql3="DELETE FROM answer WHERE phone='$userphone'";
+		mysqli_query($link,$sql3);		  
+		
+		$sql = "SELECT * FROM itemnum ";
+        $result = mysqli_query($link,$sql);		
+		$sql1 = "SELECT * FROM user ";           //目前使用者總數
+		$result1 = mysqli_query($link,$sql1);
+        $total_records=mysqli_num_rows($result);
+		
+		$item = $_GET ["item"]; 
+		$_SESSION["item"]=$item;
+		$userphone=$_SESSION["userphone"];
+        $seleitem=count($item);
+	    $h=0;
+		$i=0;
+		while($meta = mysqli_fetch_field($result1)){ 		//將選擇的題目記錄自user資料表內
+            //echo $h;			
+			    if($h==($item[$i]+5)){
+				    //echo $meta->name;
+				    $sql2="UPDATE user SET $meta->name='1' WHERE phone=$userphone"; 
+				    mysqli_query($link,$sql2);
+				    $i++;	
+			    }
+			    elseif($h>=6){
+				       $sql2="UPDATE user SET $meta->name='0' WHERE phone=$userphone"; 
+				       mysqli_query($link,$sql2);				
+			    }
+			    $h++;			
+		}						
+
+        //詢問進行個人分析或是回到功能選擇?>
+		<center>
+		<font color='red'>項目選擇成功!!<br/></font>		
+		<form name="personitemselect" method="get" action="showquestion.html">
+		    <font color='#ff69b4'>若您想進行個人分析，請按"個人分析"</font>
+		    <input type="submit" name="personitemselect" value="個人分析" style="width:100px;height:25px; border:2px #ff69b4 double; background-color:#ffc0cb;" onclick="location.href= ('https://mebabybaby07.github.io/mebabybaby07.github.io./showquestion.html')"/>
+		</form><br/>
+		<font color='#6495ed'>或是點擊"返回"，返回功能選擇頁~</font>
+		<input type="submit" name="itemselect" value="返回" style="width:100px;height:25px; border:2px #6495ed double; background-color:#add8e6;" onclick="location.href= ('https://mebabybaby07.github.io/mebabybaby07.github.io./functionselect.html')"/>
+	    
+	<?php
+	}else{
+		$link =@mysqli_connect('localhost','root','1234','meeting');
+	    mysqli_query($link,'SET NAMES utf8');
+	    $sql1 = "SELECT * FROM twoanswer where phone=$userphone ";
+		$result1 = mysqli_query($link,$sql1);
+		$num=mysqli_num_rows($result1);
+		if($num>0){
+			$sql2 = "DELETE FROM twoanswer where phone=$userphone ";
+		    $result2 = mysqli_query($link,$sql2);
+		}		
+	?> 
+	<center>
+    <font  color='#ff69b4' size='6'>婚備項目選擇</font>
+    <font  color='#ffb6c1' size='3'>每項6題</font>
+    </br></br></br></br>
+    <form name="itemchoice" method="get" action="itemselect.html">
+      <table border=0.5>
+      <?php
+          $link =@mysqli_connect('localhost','root','1234','meeting');
+	      mysqli_query($link,'SET NAMES utf8');
+	      $sql = "SELECT * FROM itemnum ";
+	      $result = mysqli_query($link,$sql); 
+          $total_records=mysqli_num_rows($result); 
+		  
+          for($i=1; $i<$total_records+1; $i++){
+		    $row=mysqli_fetch_row($result);?> 
+		    <td>
+		    <input type="checkbox" name="item[]" value="<?php echo $i ?>"> <?php echo $row[0] ?> <br>	          		   
+            </td><?php
+	      }
+      ?> 
+      </table></br></br>
+      <input type="submit" name="itemchoice" value="確認" style="width:100px;height:25px; border:2px #dda0dd double; background-color:#ffe4e1;">   
+	</form>
+	</center><?php 
+	}?>
+</body>
+</html>
