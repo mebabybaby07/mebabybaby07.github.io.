@@ -31,14 +31,14 @@
 </head>
 <body bgcolor="#e6e6fa" text="#da70d6">
 <h1>使用者登入</h1>
-<?php 
+<? 
       if(isset($_GET["hasregistered"])){
            echo "<center>";
            echo "<font color='red'>";	
            echo "此電話已註冊過，請重新登入";
 	   echo "</font>";
       }
- php?>
+ ?>
     <form name="login" method="get" action="login.html" onsubmit="return chk();">
 	   <font face="DFKai-sb" color="#ba55d3" size="4">
 	         電話號碼:<input type="text" name="phone" size="12"><br/><br/>
